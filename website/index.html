@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Open-source work to reduce end-to-end latency in conversational voice-agent systems." />
+    <meta name="theme-color" content="#0b0b0d" />
+    <link rel="canonical" href="https://premove.dev/" />
+    <link rel="icon" href="/premove-icon.png" type="image/png" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>Faster conversational voice agents, built in the open - Premove</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Premove home page">
+        <img src="/premove-icon.png" alt="" width="24" height="24" />
+        <span>Premove</span>
+      </a>
+      <button class="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme"></button>
+    </header>
+
+    <main id="content">
+      <p class="eyebrow">Premove</p>
+      <h1>Faster conversational voice agents, built in the open</h1>
+
+      <p>I got obsessed with exploring voice agents after making the same frustrating phone call over and over again. I thought making the agent smart would be the hard part. But I kept running into the less glamorous problems underneath it: latency, transcription errors, tool calls, and all the small things that make a conversation feel off.</p>
+
+      <p>Premove is my effort to work on those problems in the open, one by one.</p>
+
+      <p>The broader project is still under development. As parts become useful on their own, I’ll release them independently instead of waiting for the whole thing to be finished.</p>
+
+      <h2>Premove ITN: Context-aware inverse text normalization</h2>
+
+      <p>The first released piece is <a href="https://docs.premove.dev/itn/">Premove ITN</a>, an open-source, context-aware inverse text normalizer for English voice-agent transcripts.</p>
+
+      <p>One of the first problems I hit was that an ASR transcript could look completely fine to me and still be wrong for the tool behind the agent.</p>
+
+      <div class="code-block">
+        <button class="copy-button" type="button" aria-label="Copy the contents from the code block" title="Copy code">⧉</button>
+        <pre><code>my room number is two thirty
+→ room_number = 230
+
+meet me at two thirty
+→ 02:30</code></pre>
+      </div>
+
+      <p>If a normalizer always rewrites “two thirty” as <code>02:30</code>, it sends the wrong value for the room-number request:</p>
+
+      <div class="code-block">
+        <button class="copy-button" type="button" aria-label="Copy the contents from the code block" title="Copy code">⧉</button>
+        <pre><code>my room number is two thirty
+→ room_number = 02:30  (wrong; the tool expects 230)</code></pre>
+      </div>
+
+      <p>The same spoken words can need different written forms depending on context.</p>
+
+      <p>That is why I built <strong>Premove ITN</strong>: to turn spoken values like IDs, phone numbers, dates, times, amounts, and emails into the structured forms downstream tools expect.</p>
+
+      <p><a class="explore-link" href="https://docs.premove.dev/itn/">Explore Premove ITN →</a></p>
+    </main>
+    <script src="/site.js" defer></script>
+  </body>
+</html>
