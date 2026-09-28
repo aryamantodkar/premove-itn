@@ -2,6 +2,8 @@
 
 import json
 from pathlib import Path
+from urllib.robotparser import RobotFileParser
+from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_ROUTES = {
@@ -68,6 +70,7 @@ def test_mintlify_public_routes_match_the_site_plan() -> None:
     ]
     index_content = (ROOT / "index.mdx").read_text(encoding="utf-8")
     assert "mode: center" in index_content.split("---", 2)[1]
+    assert 'noindex: "true"' in index_content.split("---", 2)[1]
     assert "I got obsessed with exploring voice agents" in index_content
     assert (
         "Premove is my effort to work on those problems in the open, one by one."
@@ -148,6 +151,40 @@ def test_mintlify_public_routes_match_the_site_plan() -> None:
     assert len(pages) == len(set(pages))
     assert {"/", *(_public_route(page) for page in pages)} == PUBLIC_ROUTES
     assert all(_page_file(page).is_file() for page in pages)
+
+
+def test_landing_page_discovery_points_to_premove_home() -> None:
+    canonical = "https://premove.dev/"
+    site = ROOT / "website"
+    html = (site / "index.html").read_text(encoding="utf-8")
+    assert "<title>Premove: Open Source Voice Infra</title>" in html
+    assert 'property="og:title" content="Premove: Open Source Voice Infra"' in html
+    assert f'<link rel="canonical" href="{canonical}"' in html
+    assert "noindex" not in html
+
+    structured_data = json.loads(
+        html.split('<script type="application/ld+json">', 1)[1].split("</script>", 1)[0]
+    )
+    website = next(
+        node for node in structured_data["@graph"] if node["@type"] == "WebSite"
+    )
+    assert website["url"] == canonical
+
+    sitemap = ElementTree.parse(site / "sitemap.xml")
+    namespace = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
+    assert [node.text for node in sitemap.iter(f"{namespace}loc")] == [canonical]
+
+    robots = (site / "robots.txt").read_text(encoding="utf-8")
+    parser = RobotFileParser()
+    parser.parse(robots.splitlines())
+    assert parser.can_fetch("Googlebot", canonical)
+    assert parser.can_fetch("OAI-SearchBot", canonical)
+    assert "Sitemap: https://premove.dev/sitemap.xml" in robots
+
+    llms = (site / "llms.txt").read_text(encoding="utf-8")
+    assert llms.startswith("# Premove\n")
+    assert f"[Premove home]({canonical})" in llms
+    assert "https://docs.premove.dev/llms.txt" in llms
 
 
 def test_navigable_pages_have_search_and_llm_metadata() -> None:
